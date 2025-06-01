@@ -16,14 +16,28 @@ const Leaderboard: React.FC = () => {
 
   useEffect(() => {
     const fetchRoasts = async () => {
-      const { data, error } = await supabase
-        .from('roasts')
-        .select('*')
-        .order('score', { ascending: false })
-        .limit(10);
+      if (supabase) {
+        const { data, error } = await supabase
+          .from('roasts')
+          .select('*')
+          .order('score', { ascending: false })
+          .limit(10);
 
-      if (!error && data) {
-        setRoasts(data);
+        if (!error && data) {
+          setRoasts(data);
+        }
+      } else {
+        console.warn('Supabase not configured - Leaderboard will show demo data');
+        // Set some demo data
+        setRoasts([
+          {
+            id: '1',
+            playlist_name: 'Demo Playlist',
+            roast_text: 'This is a demo roast. Configure Supabase to see real roasts!',
+            score: 95,
+            created_at: new Date().toISOString()
+          }
+        ]);
       }
       setLoading(false);
     };

@@ -1,0 +1,84 @@
+## Font for Body, Subtext, Labels
+
+<script>
+  (function(d) {
+    var config = {
+      kitId: 'hro0jqa',
+      scriptTimeout: 3000,
+      async: true
+    },
+    h=d.documentElement,t=setTimeout(function(){h.className=h.className.replace(/\bwf-loading\b/g,"")+" wf-inactive";},config.scriptTimeout),tk=d.createElement("script"),f=false,s=d.getElementsByTagName("script")[0],a;h.className+=" wf-loading";tk.src='https://use.typekit.net/'+config.kitId+'.js';tk.async=true;tk.onload=tk.onreadystatechange=function(){a=this.readyState;if(f||a&&a!="complete"&&a!="loaded")return;f=true;clearTimeout(t);try{Typekit.load(config)}catch(e){}};s.parentNode.insertBefore(tk,s)
+  })(document);
+</script>
+Fonts Added:
+Neue Haas Grotesk Display Pro 45 Light
+font-family: "neue-haas-grotesk-display", sans-serif;
+font-weight: 400;
+font-style: normal;
+Neue Haas Grotesk Display Pro 46 Light Italic
+font-family: "neue-haas-grotesk-display", sans-serif;
+font-weight: 400;
+font-style: italic;
+Neue Haas Grotesk Display Pro 75 Bold
+font-family: "neue-haas-grotesk-display", sans-serif;
+font-weight: 700;
+font-style: normal;
+Neue Haas Grotesk Display Pro 76 Bold Italic
+font-family: "neue-haas-grotesk-display", sans-serif;
+font-weight: 700;
+font-style: italic;
+Neue Haas Grotesk Text Pro 55 Roman
+font-family: "neue-haas-grotesk-text", sans-serif;
+font-weight: 400;
+font-style: normal;
+Neue Haas Grotesk Text Pro 56 Italic
+font-family: "neue-haas-grotesk-text", sans-serif;
+font-weight: 400;
+font-style: italic;
+Neue Haas Grotesk Text Pro 75 Bold
+font-family: "neue-haas-grotesk-text", sans-serif;
+font-weight: 700;
+font-style: normal;
+Neue Haas Grotesk Text Pro 76 Bold Italic
+font-family: "neue-haas-grotesk-text", sans-serif;
+font-weight: 700;
+font-style: italic;
+
+## Font for Headers
+
+<script>
+  (function(d) {
+    var config = {
+      kitId: 'hro0jqa',
+      scriptTimeout: 3000,
+      async: true
+    },
+    h=d.documentElement,t=setTimeout(function(){h.className=h.className.replace(/\bwf-loading\b/g,"")+" wf-inactive";},config.scriptTimeout),tk=d.createElement("script"),f=false,s=d.getElementsByTagName("script")[0],a;h.className+=" wf-loading";tk.src='https://use.typekit.net/'+config.kitId+'.js';tk.async=true;tk.onload=tk.onreadystatechange=function(){a=this.readyState;if(f||a&&a!="complete"&&a!="loaded")return;f=true;clearTimeout(t);try{Typekit.load(config)}catch(e){}};s.parentNode.insertBefore(tk,s)
+  })(document);
+</script>
+Fonts Added:
+Dunkelsans v0.7 Medium
+font-family: "dunkel-sans-medium", sans-serif;
+font-weight: 900;
+font-style: normal;
+Dunkelsans v0.7 Condensed
+font-family: "dunkel-sans-condensed", sans-serif;
+font-weight: 800;
+font-style: normal;
+Dunkelsans v0.7 Expanded
+font-family: "dunkel-sans-expanded", sans-serif;
+font-weight: 900;
+font-style: normal;
+Dunkelsans v0.7 GlattCondensed
+font-family: "dunkel-sans-condensed-glatt", sans-serif;
+font-weight: 900;
+font-style: normal;
+Dunkelsans v0.7 Glatt
+font-family: "dunkel-sans-glatt", sans-serif;
+font-weight: 900;
+font-style: normal;
+Dunkelsans v0.7 Expanded Glatt
+font-family: "dunkel-sans-expanded-glatt", sans-serif;
+font-weight: 900;
+font-style: normal;
+
