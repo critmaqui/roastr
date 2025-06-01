@@ -51,7 +51,7 @@ export const handler: Handler = async (event) => {
       body: new URLSearchParams({
         grant_type: 'authorization_code',
         code,
-        redirect_uri: redirect_uri || REDIRECT_URI || 'http://127.0.0.1:5173/callback',
+        redirect_uri: redirect_uri || REDIRECT_URI || `${event.headers.host}/callback`,
       }),
     });
 
@@ -81,4 +81,4 @@ export const handler: Handler = async (event) => {
       body: JSON.stringify({ error: 'Internal server error' }),
     };
   }
-}; 
+};
