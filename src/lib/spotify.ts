@@ -1,9 +1,8 @@
 import Cookies from 'js-cookie';
 
 const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
-// Use the deployed URL or fallback to local development
 const REDIRECT_URI = import.meta.env.VITE_SPOTIFY_REDIRECT_URI || 
-  `${window.location.protocol}//${window.location.host}/callback`;
+  'https://getroasted.me/callback';
 const SCOPES = [
   'playlist-read-private',
   'playlist-read-collaborative',
@@ -45,13 +44,13 @@ export const exchangeToken = async (code: string) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         code,
-        redirect_uri: REDIRECT_URI // Pass the same redirect URI
+        redirect_uri: REDIRECT_URI
       }),
     });
     
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Token exchange failed: ${response.status} - ${errorText}`);
+      const errorData = await response.json();
+      throw new Error(`Token exchange failed: ${errorData.error}`);
     }
 
     const data = await response.json();
