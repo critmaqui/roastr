@@ -2,20 +2,36 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { exchangeToken } from '../lib/spotify';
 import { supabase } from '../lib/supabase';
+import LoadingSpinner from './LoadingSpinner';
 
 const SpotifyCallback: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get('code');
+    const handleCallback = async () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('code');
+        const error = params.get('error');
 
-    if (code) {
-      exchangeToken(code).then(async (tokenData) => {
+        if (error) {
+          console.error('Authorization error:', error);
+          navigate('/', { replace: true });
+          return;
+        }
+
+        if (!code) {
+          console.error('No authorization code present');
+          navigate('/', { replace: true });
+          return;
+        }
+
+        const tokenData = await exchangeToken(code);
+        
         // Store the access token
         localStorage.setItem('spotify_token', tokenData.access_token);
         
-        // Optionally store refresh token if you want to implement token refresh
+        // Store refresh token if provided
         if (tokenData.refresh_token) {
           localStorage.setItem('spotify_refresh_token', tokenData.refresh_token);
         }
@@ -27,9 +43,13 @@ const SpotifyCallback: React.FC = () => {
           }
         });
         
+        if (!profileResponse.ok) {
+          throw new Error('Failed to fetch user profile');
+        }
+        
         const profile = await profileResponse.json();
         
-        // Check if user exists in Supabase (only if Supabase is configured)
+        // Handle Supabase user creation/update if configured
         if (supabase) {
           const { data: existingUser } = await supabase
             .from('users')
@@ -42,7 +62,6 @@ const SpotifyCallback: React.FC = () => {
           if (existingUser) {
             userId = existingUser.id;
           } else {
-            // Create new user
             const { data: newUser, error } = await supabase
               .from('users')
               .insert({
@@ -57,32 +76,28 @@ const SpotifyCallback: React.FC = () => {
             }
           }
           
-          // Store user ID in localStorage for later use
           if (userId) {
             localStorage.setItem('user_id', userId);
           }
         } else {
-          // If Supabase is not configured, just store Spotify ID as user ID
           localStorage.setItem('user_id', profile.id);
-          console.warn('Supabase not configured - using Spotify ID as user ID');
         }
         
-        navigate('/playlist-select');
-      }).catch((error: Error) => {
-        console.error('Error exchanging code for token:', error);
-        navigate('/');
-      });
-    } else {
-      navigate('/');
-    }
+        // Redirect to playlist selection
+        navigate('/playlist-select', { replace: true });
+        
+      } catch (error) {
+        console.error('Error during authentication:', error);
+        navigate('/', { replace: true });
+      }
+    };
+
+    handleCallback();
   }, [navigate]);
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center">
-      <div className="text-white text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500 mx-auto mb-4"></div>
-        <p>Connecting to Spotify...</p>
-      </div>
+      <LoadingSpinner message="Connecting to Spotify..." />
     </div>
   );
 };

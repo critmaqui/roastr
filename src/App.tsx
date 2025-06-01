@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Features from './components/Features';
@@ -25,6 +25,7 @@ function App() {
           </div>
         }>
           <Routes>
+            {/* Home route */}
             <Route path="/" element={
               <>
                 <Navbar />
@@ -36,9 +37,16 @@ function App() {
                 <Footer />
               </>
             } />
+            
+            {/* Auth callback route */}
             <Route path="/callback" element={<SpotifyCallback />} />
+            
+            {/* Protected routes */}
             <Route path="/playlist-select" element={<PlaylistSelect />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
+            
+            {/* Catch all route - redirect to home */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
         <BoltButton />
