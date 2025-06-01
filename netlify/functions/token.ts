@@ -41,12 +41,17 @@ export const handler: Handler = async (event) => {
       };
     }
 
-    // Use the deployment URL or localhost for development
-    const baseUrl = event.headers.host.includes('localhost') || event.headers.host.includes('127.0.0.1')
+    // Determine the redirect URI based on the environment
+    const isLocalhost = event.headers.host?.includes('localhost') || event.headers.host?.includes('127.0.0.1');
+    const baseUrl = isLocalhost 
       ? `http://${event.headers.host}`
       : `https://${event.headers.host}`;
-
     const finalRedirectUri = REDIRECT_URI || `${baseUrl}/callback`;
+
+    // Log the values for debugging (remove in production)
+    console.log('Client ID:', CLIENT_ID);
+    console.log('Redirect URI:', finalRedirectUri);
+    console.log('Host:', event.headers.host);
 
     // Exchange code for access token
     const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
@@ -63,17 +68,19 @@ export const handler: Handler = async (event) => {
     });
 
     if (!tokenResponse.ok) {
-      const error = await tokenResponse.text();
-      console.error('Token exchange error:', error);
+      const errorData = await tokenResponse.text();
+      console.error('Spotify token exchange error:', errorData);
       return {
-        statusCode: 401,
+        statusCode: tokenResponse.status,
         headers,
-        body: JSON.stringify({ error: 'Failed to exchange token' }),
+        body: JSON.stringify({ 
+          error: 'Failed to exchange token',
+          details: errorData
+        }),
       };
     }
 
     const tokenData = await tokenResponse.json();
-
     return {
       statusCode: 200,
       headers,
@@ -85,7 +92,10 @@ export const handler: Handler = async (event) => {
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: 'Internal server error' }),
+      body: JSON.stringify({ 
+        error: 'Internal server error',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      }),
     };
   }
 };

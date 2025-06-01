@@ -33,12 +33,16 @@ export const loginWithSpotify = () => {
     show_dialog: 'true' // Force showing the auth dialog
   });
 
-  window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`;
+  const authUrl = `https://accounts.spotify.com/authorize?${params.toString()}`;
+  console.log('Auth URL:', authUrl); // For debugging
+  window.location.href = authUrl;
 };
 
 export const exchangeToken = async (code: string) => {
   try {
-    console.log('Exchanging token with redirect URI:', REDIRECT_URI);
+    console.log('Exchanging token...');
+    console.log('Code:', code);
+    console.log('Redirect URI:', REDIRECT_URI);
     
     const response = await fetch('/.netlify/functions/token', {
       method: 'POST',
@@ -48,10 +52,13 @@ export const exchangeToken = async (code: string) => {
     
     if (!response.ok) {
       const errorText = await response.text();
+      console.error('Token exchange failed:', response.status, errorText);
       throw new Error(`Token exchange failed: ${response.status} - ${errorText}`);
     }
 
-    return response.json();
+    const data = await response.json();
+    console.log('Token exchange successful');
+    return data;
   } catch (error) {
     console.error('Token exchange error:', error);
     throw error;
