@@ -16,6 +16,11 @@ export const loginWithSpotify = () => {
     return;
   }
 
+  // Clear any existing tokens
+  localStorage.removeItem('spotify_token');
+  localStorage.removeItem('spotify_refresh_token');
+  localStorage.removeItem('user_id');
+
   const state = Math.random().toString(36).substring(7);
   Cookies.set('spotify_auth_state', state);
 
@@ -33,17 +38,17 @@ export const loginWithSpotify = () => {
 
 export const exchangeToken = async (code: string) => {
   try {
+    console.log('Exchanging token with redirect URI:', REDIRECT_URI);
+    
     const response = await fetch('/.netlify/functions/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        code,
-        redirect_uri: REDIRECT_URI
-      }),
+      body: JSON.stringify({ code }),
     });
     
     if (!response.ok) {
-      throw new Error(`Token exchange failed: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`Token exchange failed: ${response.status} - ${errorText}`);
     }
 
     return response.json();
@@ -54,43 +59,58 @@ export const exchangeToken = async (code: string) => {
 };
 
 export const getSpotifyPlaylists = async (token: string) => {
-  const response = await fetch('https://api.spotify.com/v1/me/playlists', {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
-  });
+  try {
+    const response = await fetch('https://api.spotify.com/v1/me/playlists', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
 
-  if (!response.ok) {
-    throw new Error('Failed to fetch playlists');
+    if (!response.ok) {
+      throw new Error('Failed to fetch playlists');
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error('Error fetching playlists:', error);
+    throw error;
   }
-
-  return response.json();
 };
 
 export const getPlaylistTracks = async (token: string, playlistId: string) => {
-  const response = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
-  });
+  try {
+    const response = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
 
-  if (!response.ok) {
-    throw new Error('Failed to fetch tracks');
+    if (!response.ok) {
+      throw new Error('Failed to fetch tracks');
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error('Error fetching tracks:', error);
+    throw error;
   }
-
-  return response.json();
 };
 
 export const getUserProfile = async (token: string) => {
-  const response = await fetch('https://api.spotify.com/v1/me', {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
-  });
+  try {
+    const response = await fetch('https://api.spotify.com/v1/me', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
 
-  if (!response.ok) {
-    throw new Error('Failed to fetch user profile');
+    if (!response.ok) {
+      throw new Error('Failed to fetch user profile');
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    throw error;
   }
-
-  return response.json();
 };

@@ -31,7 +31,7 @@ export const handler: Handler = async (event) => {
   }
 
   try {
-    const { code, redirect_uri } = JSON.parse(event.body || '{}');
+    const { code } = JSON.parse(event.body || '{}');
 
     if (!code) {
       return {
@@ -40,6 +40,13 @@ export const handler: Handler = async (event) => {
         body: JSON.stringify({ error: 'Authorization code required' }),
       };
     }
+
+    // Use the deployment URL or localhost for development
+    const baseUrl = event.headers.host.includes('localhost') || event.headers.host.includes('127.0.0.1')
+      ? `http://${event.headers.host}`
+      : `https://${event.headers.host}`;
+
+    const finalRedirectUri = REDIRECT_URI || `${baseUrl}/callback`;
 
     // Exchange code for access token
     const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
@@ -51,7 +58,7 @@ export const handler: Handler = async (event) => {
       body: new URLSearchParams({
         grant_type: 'authorization_code',
         code,
-        redirect_uri: redirect_uri || REDIRECT_URI || `${event.headers.host}/callback`,
+        redirect_uri: finalRedirectUri,
       }),
     });
 
