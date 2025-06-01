@@ -2,7 +2,6 @@ import { Handler } from '@netlify/functions';
 
 const CLIENT_ID = process.env.VITE_SPOTIFY_CLIENT_ID || process.env.SPOTIFY_CLIENT_ID;
 const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET || process.env.VITE_SPOTIFY_CLIENT_SECRET;
-const REDIRECT_URI = process.env.VITE_SPOTIFY_REDIRECT_URI || process.env.SPOTIFY_REDIRECT_URI;
 
 export const handler: Handler = async (event) => {
   // Enable CORS
@@ -31,7 +30,7 @@ export const handler: Handler = async (event) => {
   }
 
   try {
-    const { code } = JSON.parse(event.body || '{}');
+    const { code, redirect_uri } = JSON.parse(event.body || '{}');
 
     if (!code) {
       return {
@@ -41,17 +40,13 @@ export const handler: Handler = async (event) => {
       };
     }
 
-    // Determine the redirect URI based on the environment
-    const isLocalhost = event.headers.host?.includes('localhost') || event.headers.host?.includes('127.0.0.1');
-    const baseUrl = isLocalhost 
-      ? `http://${event.headers.host}`
-      : `https://${event.headers.host}`;
-    const finalRedirectUri = REDIRECT_URI || `${baseUrl}/callback`;
-
-    // Log the values for debugging (remove in production)
-    console.log('Client ID:', CLIENT_ID);
-    console.log('Redirect URI:', finalRedirectUri);
-    console.log('Host:', event.headers.host);
+    if (!redirect_uri) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ error: 'Redirect URI required' }),
+      };
+    }
 
     // Exchange code for access token
     const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
@@ -63,7 +58,7 @@ export const handler: Handler = async (event) => {
       body: new URLSearchParams({
         grant_type: 'authorization_code',
         code,
-        redirect_uri: finalRedirectUri,
+        redirect_uri,
       }),
     });
 

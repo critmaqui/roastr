@@ -1,8 +1,9 @@
 import Cookies from 'js-cookie';
 
 const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
+// Use the deployed URL or fallback to local development
 const REDIRECT_URI = import.meta.env.VITE_SPOTIFY_REDIRECT_URI || 
-  `${window.location.origin}/callback`;
+  `${window.location.protocol}//${window.location.host}/callback`;
 const SCOPES = [
   'playlist-read-private',
   'playlist-read-collaborative',
@@ -34,30 +35,26 @@ export const loginWithSpotify = () => {
   });
 
   const authUrl = `https://accounts.spotify.com/authorize?${params.toString()}`;
-  console.log('Auth URL:', authUrl); // For debugging
   window.location.href = authUrl;
 };
 
 export const exchangeToken = async (code: string) => {
   try {
-    console.log('Exchanging token...');
-    console.log('Code:', code);
-    console.log('Redirect URI:', REDIRECT_URI);
-    
     const response = await fetch('/.netlify/functions/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code }),
+      body: JSON.stringify({ 
+        code,
+        redirect_uri: REDIRECT_URI // Pass the same redirect URI
+      }),
     });
     
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Token exchange failed:', response.status, errorText);
       throw new Error(`Token exchange failed: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
-    console.log('Token exchange successful');
     return data;
   } catch (error) {
     console.error('Token exchange error:', error);
