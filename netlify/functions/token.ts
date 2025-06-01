@@ -1,6 +1,6 @@
 import { Handler } from '@netlify/functions';
 
-const CLIENT_ID = process.env.VITE_SPOTIFY_CLIENT_ID || process.env.SPOTIFY_CLIENT_ID;
+const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
 
 export const handler: Handler = async (event) => {
@@ -30,6 +30,10 @@ export const handler: Handler = async (event) => {
   }
 
   try {
+    if (!CLIENT_ID || !CLIENT_SECRET) {
+      throw new Error('Missing Spotify credentials');
+    }
+
     const { code, redirect_uri } = JSON.parse(event.body || '{}');
 
     if (!code) {

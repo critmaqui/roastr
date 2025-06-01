@@ -50,6 +50,7 @@ export const exchangeToken = async (code: string) => {
     
     if (!response.ok) {
       const errorData = await response.json();
+      console.error('Token exchange error details:', errorData);
       throw new Error(`Token exchange failed: ${errorData.error}`);
     }
 
