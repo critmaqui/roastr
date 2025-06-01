@@ -1,7 +1,7 @@
 import { Handler } from '@netlify/functions';
 
 const CLIENT_ID = process.env.VITE_SPOTIFY_CLIENT_ID || process.env.SPOTIFY_CLIENT_ID;
-const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
+const CLIENT_SECRET = process.env.VITE_SPOTIFY_CLIENT_SECRET || process.env.SPOTIFY_CLIENT_SECRET;
 const REDIRECT_URI = process.env.VITE_SPOTIFY_REDIRECT_URI || 'https://getroasted.me/callback';
 
 export const handler: Handler = async (event) => {
