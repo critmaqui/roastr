@@ -1,13 +1,14 @@
 import { Handler } from '@netlify/functions';
 
-const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
+const CLIENT_ID = process.env.VITE_SPOTIFY_CLIENT_ID || process.env.SPOTIFY_CLIENT_ID;
 const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
+const REDIRECT_URI = process.env.VITE_SPOTIFY_REDIRECT_URI || 'https://getroasted.me/callback';
 
 export const handler: Handler = async (event) => {
   // Enable CORS
   const headers = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
   };
 
@@ -31,24 +32,20 @@ export const handler: Handler = async (event) => {
 
   try {
     if (!CLIENT_ID || !CLIENT_SECRET) {
+      console.error('Missing credentials:', { 
+        hasClientId: !!CLIENT_ID, 
+        hasClientSecret: !!CLIENT_SECRET 
+      });
       throw new Error('Missing Spotify credentials');
     }
 
-    const { code, redirect_uri } = JSON.parse(event.body || '{}');
+    const { code } = JSON.parse(event.body || '{}');
 
     if (!code) {
       return {
         statusCode: 400,
         headers,
         body: JSON.stringify({ error: 'Authorization code required' }),
-      };
-    }
-
-    if (!redirect_uri) {
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({ error: 'Redirect URI required' }),
       };
     }
 
@@ -62,13 +59,17 @@ export const handler: Handler = async (event) => {
       body: new URLSearchParams({
         grant_type: 'authorization_code',
         code,
-        redirect_uri,
+        redirect_uri: REDIRECT_URI,
       }),
     });
 
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.text();
-      console.error('Spotify token exchange error:', errorData);
+      console.error('Spotify token exchange error:', {
+        status: tokenResponse.status,
+        statusText: tokenResponse.statusText,
+        error: errorData
+      });
       return {
         statusCode: tokenResponse.status,
         headers,

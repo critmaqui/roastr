@@ -16,10 +16,11 @@ export const loginWithSpotify = () => {
     return;
   }
 
-  // Clear any existing tokens
+  // Clear any existing tokens and state
   localStorage.removeItem('spotify_token');
   localStorage.removeItem('spotify_refresh_token');
   localStorage.removeItem('user_id');
+  Cookies.remove('spotify_auth_state');
 
   const state = Math.random().toString(36).substring(7);
   Cookies.set('spotify_auth_state', state);
@@ -42,19 +43,20 @@ export const exchangeToken = async (code: string) => {
     const response = await fetch('/.netlify/functions/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        code,
-        redirect_uri: REDIRECT_URI
-      }),
+      body: JSON.stringify({ code }),
     });
     
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('Token exchange error details:', errorData);
-      throw new Error(`Token exchange failed: ${errorData.error}`);
+      throw new Error(errorData.error || 'Failed to exchange token');
     }
 
     const data = await response.json();
+    
+    if (!data.access_token) {
+      throw new Error('No access token received');
+    }
+
     return data;
   } catch (error) {
     console.error('Token exchange error:', error);
