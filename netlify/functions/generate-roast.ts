@@ -7,10 +7,16 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Initialize Supabase
+// Initialize Supabase with service role key for admin access
 const supabase = createClient(
   process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY! // Using service key for server-side operations
+  process.env.SUPABASE_SERVICE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: false
+    }
+  }
 );
 
 export const handler: Handler = async (event) => {
@@ -52,7 +58,7 @@ export const handler: Handler = async (event) => {
     }
 
     // Generate roast prompt
-    const trackList = tracks.slice(0, 20).join(', '); // Limit to 20 tracks for API limits
+    const trackList = tracks.slice(0, 20).join(', ');
     const prompt = `You are a savage Gen Z music critic. Roast this Spotify playlist "${playlistName || 'Untitled'}" based on these tracks: ${trackList}. 
 
 Make it funny, brutally honest, and use Gen Z slang. The roast should be 2-3 sentences max, hitting hard on their music taste. Be creative and reference specific artists or songs. End with a fire emoji.`;
@@ -76,19 +82,18 @@ Make it funny, brutally honest, and use Gen Z slang. The roast should be 2-3 sen
 
     const roast = completion.choices[0]?.message?.content || "Your music taste broke our AI. That's the real roast. 🔥";
 
-    // Save to Supabase if we have the necessary IDs
+    // Save to Supabase if we have the playlist ID
     if (playlistId) {
       const { error: insertError } = await supabase
         .from('roasts')
         .insert({
           playlist_id: playlistId,
           roast_text: roast,
-          score: Math.floor(Math.random() * 100), // Random score for now
+          score: Math.floor(Math.random() * 100),
         });
 
       if (insertError) {
         console.error('Error saving roast to Supabase:', insertError);
-        // Don't fail the request if save fails
       }
     }
 
@@ -101,7 +106,6 @@ Make it funny, brutally honest, and use Gen Z slang. The roast should be 2-3 sen
   } catch (error) {
     console.error('Error generating roast:', error);
     
-    // Fallback roasts if OpenAI fails
     const fallbackRoasts = [
       "Your playlist is so mid, even elevator music is jealous. 🔥",
       "This playlist screams 'I peaked in high school'. No cap. 🔥",
@@ -117,4 +121,4 @@ Make it funny, brutally honest, and use Gen Z slang. The roast should be 2-3 sen
       body: JSON.stringify({ roast: fallbackRoast }),
     };
   }
-}; 
+};
