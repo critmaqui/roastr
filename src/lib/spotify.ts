@@ -42,7 +42,10 @@ export const exchangeToken = async (code: string) => {
   try {
     const response = await fetch('/.netlify/functions/token', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'apikey': import.meta.env.VITE_NETLIFY_API_KEY || ''
+      },
       body: JSON.stringify({ code }),
     });
     
