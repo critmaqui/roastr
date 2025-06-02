@@ -1,10 +1,21 @@
 import { Handler } from '@netlify/functions';
 import { createClient } from '@supabase/supabase-js';
 
-// Initialize Supabase
+// Initialize Supabase with service role key for admin access
 const supabase = createClient(
   process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!
+  process.env.SUPABASE_SERVICE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    },
+    global: {
+      headers: {
+        'apikey': process.env.SUPABASE_SERVICE_KEY!
+      }
+    }
+  }
 );
 
 export const handler: Handler = async (event) => {
@@ -83,4 +94,4 @@ export const handler: Handler = async (event) => {
       body: JSON.stringify({ error: 'Internal server error' }),
     };
   }
-}; 
+};
