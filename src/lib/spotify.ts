@@ -42,10 +42,7 @@ export const exchangeToken = async (code: string) => {
   try {
     const response = await fetch('/.netlify/functions/token', {
       method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'apikey': import.meta.env.VITE_NETLIFY_API_KEY || ''
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code }),
     });
     
@@ -60,6 +57,12 @@ export const exchangeToken = async (code: string) => {
       throw new Error('No access token received');
     }
 
+    // Store both tokens
+    localStorage.setItem('spotify_token', data.access_token);
+    if (data.refresh_token) {
+      localStorage.setItem('spotify_refresh_token', data.refresh_token);
+    }
+
     return data;
   } catch (error) {
     console.error('Token exchange error:', error);
@@ -67,8 +70,60 @@ export const exchangeToken = async (code: string) => {
   }
 };
 
-export const getSpotifyPlaylists = async (token: string) => {
+export const refreshAccessToken = async () => {
   try {
+    const refresh_token = localStorage.getItem('spotify_refresh_token');
+    if (!refresh_token) {
+      throw new Error('No refresh token available');
+    }
+
+    const response = await fetch('/.netlify/functions/refresh-token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to refresh token');
+    }
+
+    const data = await response.json();
+    
+    if (!data.access_token) {
+      throw new Error('No access token received from refresh');
+    }
+
+    // Update stored tokens
+    localStorage.setItem('spotify_token', data.access_token);
+    if (data.refresh_token) {
+      localStorage.setItem('spotify_refresh_token', data.refresh_token);
+    }
+
+    return data.access_token;
+  } catch (error) {
+    console.error('Token refresh error:', error);
+    // Clear tokens and redirect to login
+    localStorage.removeItem('spotify_token');
+    localStorage.removeItem('spotify_refresh_token');
+    window.location.href = '/';
+    throw error;
+  }
+};
+
+const handleSpotifyError = async (error: any, retryFn: () => Promise<any>) => {
+  if (error.status === 401) {
+    try {
+      await refreshAccessToken();
+      return await retryFn();
+    } catch (refreshError) {
+      throw refreshError;
+    }
+  }
+  throw error;
+};
+
+export const getSpotifyPlaylists = async (token: string) => {
+  const fetchPlaylists = async () => {
     const response = await fetch('https://api.spotify.com/v1/me/playlists', {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -76,18 +131,21 @@ export const getSpotifyPlaylists = async (token: string) => {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch playlists');
+      throw { status: response.status, message: 'Failed to fetch playlists' };
     }
 
     return response.json();
-  } catch (error) {
-    console.error('Error fetching playlists:', error);
-    throw error;
+  };
+
+  try {
+    return await fetchPlaylists();
+  } catch (error: any) {
+    return await handleSpotifyError(error, fetchPlaylists);
   }
 };
 
 export const getPlaylistTracks = async (token: string, playlistId: string) => {
-  try {
+  const fetchTracks = async () => {
     const response = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -95,18 +153,21 @@ export const getPlaylistTracks = async (token: string, playlistId: string) => {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch tracks');
+      throw { status: response.status, message: 'Failed to fetch tracks' };
     }
 
     return response.json();
-  } catch (error) {
-    console.error('Error fetching tracks:', error);
-    throw error;
+  };
+
+  try {
+    return await fetchTracks();
+  } catch (error: any) {
+    return await handleSpotifyError(error, fetchTracks);
   }
 };
 
 export const getUserProfile = async (token: string) => {
-  try {
+  const fetchProfile = async () => {
     const response = await fetch('https://api.spotify.com/v1/me', {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -114,12 +175,15 @@ export const getUserProfile = async (token: string) => {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch user profile');
+      throw { status: response.status, message: 'Failed to fetch user profile' };
     }
 
     return response.json();
-  } catch (error) {
-    console.error('Error fetching user profile:', error);
-    throw error;
+  };
+
+  try {
+    return await fetchProfile();
+  } catch (error: any) {
+    return await handleSpotifyError(error, fetchProfile);
   }
 };
